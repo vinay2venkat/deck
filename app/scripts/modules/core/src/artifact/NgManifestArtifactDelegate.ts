@@ -10,18 +10,16 @@ import {
   IStage,
   IPipeline,
 } from 'core';
+import { ExpectedArtifactSelectorViewControllerAngularDelegate } from './ExpectedArtifactSelectorViewControllerAngularDelegate';
 import { ArtifactTypePatterns } from './ArtifactTypes';
-
-type ManifestArtifactSource = IArtifactSource<IStage | IPipeline>;
 
 const defaultExcludedArtifactTypes = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
 
-export class NgManifestArtifactDelegate implements IExpectedArtifactSelectorViewControllerDelegate {
-  private sources: ManifestArtifactSource[];
-  private kinds: IArtifactKindConfig[];
-  private accounts: IArtifactAccount[];
-
-  constructor(private $scope: IScope, private excludedArtifactTypes = defaultExcludedArtifactTypes) {
+export class NgManifestArtifactDelegate
+  extends ExpectedArtifactSelectorViewControllerAngularDelegate<IArtifactSource<IStage | IPipeline>>
+  implements IExpectedArtifactSelectorViewControllerDelegate {
+  constructor(protected $scope: IScope, private excludedArtifactTypes = defaultExcludedArtifactTypes) {
+    super($scope);
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(this.$scope.$parent.pipeline, this.$scope.stage);
     this.kinds = Registry.pipeline
       .getArtifactKinds()
@@ -49,10 +47,6 @@ export class NgManifestArtifactDelegate implements IExpectedArtifactSelectorView
     return this.getExpectedArtifacts().find(ea => ea.id === id);
   };
 
-  public getExpectedArtifactAccounts = (): IArtifactAccount[] => {
-    return this.accounts;
-  };
-
   public getSelectedAccount = (): IArtifactAccount => {
     const accountName = this.$scope.stage.manifestArtifactAccount;
     if (accountName == null) {
@@ -61,22 +55,10 @@ export class NgManifestArtifactDelegate implements IExpectedArtifactSelectorView
     return this.getExpectedArtifactAccounts().find(a => a.name === accountName);
   };
 
-  public getExpectedArtifactSources = (): ManifestArtifactSource[] => {
-    return this.sources;
-  };
-
-  public getSupportedArtifactKinds = (): IArtifactKindConfig[] => {
-    return this.kinds;
-  };
-
-  public setAccounts = (accounts: IArtifactAccount[]) => {
-    this.accounts = [...accounts];
-  };
-
   public setSelectedExpectedArtifact = (expectedArtifact: IExpectedArtifact) => {
     this.$scope.showCreateArtifactForm = false;
     this.$scope.stage.manifestArtifactId = expectedArtifact.id;
-    this.$scope.$apply();
+    this.scopeApply();
   };
 
   public setSelectedArtifactAccount(account: IArtifactAccount) {
@@ -85,12 +67,12 @@ export class NgManifestArtifactDelegate implements IExpectedArtifactSelectorView
     } else {
       this.$scope.stage.manifestArtifactAccount = '';
     }
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public createArtifact() {
     this.$scope.showCreateArtifactForm = true;
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public refreshExpectedArtifacts() {
