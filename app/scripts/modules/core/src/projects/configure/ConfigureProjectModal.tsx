@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FormikErrors } from 'formik';
 
 import { ApplicationReader, IApplicationSummary } from 'core/application';
-import { IPipeline, IProject, IProjectCluster, IProjectPipeline } from 'core/domain';
+import { IPipeline, IProject } from 'core/domain';
 import { WizardModal } from 'core/modal';
 import { PipelineConfigService } from 'core/pipeline';
 import { IModalComponentProps, ReactModal } from 'core/presentation';
@@ -18,14 +18,6 @@ import './ConfigureProjectModal.css';
 export interface IConfigureProjectModalProps extends IModalComponentProps {
   title: string;
   projectConfiguration: IProject;
-  command: {
-    viewState: {
-      applications: string[];
-      pipelineConfigs: IProjectPipeline[];
-      clusters: IProjectCluster[];
-      attributes: { name: string; email: string };
-    };
-  };
 }
 
 export interface IConfigureProjectModalState {
@@ -131,9 +123,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
         />
 
         <Applications
-          applications={projectConfiguration ? projectConfiguration.config.applications : []}
           allApplications={allApplications.map(app => app.name)}
-          onChange={this.fetchPipelinesForApps}
           done={!!(projectConfiguration && projectConfiguration.config.applications.length)}
         />
 

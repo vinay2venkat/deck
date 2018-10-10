@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FormikErrors } from 'formik';
 import { IProject } from 'core/domain';
 import { IWizardPageProps, wizardPage } from 'core/modal';
-import { TextField } from 'core/presentation';
+import { FormField, FormikFormField, TextInput } from 'core/presentation';
 
 export interface IProjectAttributesProps extends IWizardPageProps<IProject> {
   onDelete?: Function;
@@ -22,25 +22,25 @@ class ProjectAttributesImpl extends React.Component<IProjectAttributesProps, IPr
     projectNameForDeletion: null as string,
   };
 
-  private isValidName = (name: string) => {
-    const namePattern = /^[^\\\^/^?^%^#]*$/;
-    return name.match(namePattern);
-  };
-
-  private isValidEmail = (email: string) => {
-    const emailPattern = /^(.+)\@(.+).([A-Za-z]{2,6})/;
-    return email.match(emailPattern);
-  };
-
   public validate(values: IProject) {
     const errors: FormikErrors<IProject> = {};
+
+    const isValidName = (name: string) => {
+      const namePattern = /^[^\\\^/^?^%^#]*$/;
+      return name.match(namePattern);
+    };
+
+    const isValidEmail = (email: string) => {
+      const emailPattern = /^(.+)\@(.+).([A-Za-z]{2,6})/;
+      return email.match(emailPattern);
+    };
 
     const { allProjects } = this.props;
     const allProjectNames = allProjects.map(project => project.name.toLowerCase());
 
     if (!values.name) {
       errors.name = 'Please enter a project name';
-    } else if (!this.isValidName(values.name)) {
+    } else if (!isValidName(values.name)) {
       errors.name = 'Project name cannot contain any of the following characters:  / % #';
     } else if (allProjectNames.includes(values.name.toLowerCase())) {
       errors.name = 'There is already a project with that name';
@@ -48,7 +48,7 @@ class ProjectAttributesImpl extends React.Component<IProjectAttributesProps, IPr
 
     if (!values.email) {
       errors.email = 'Please enter an email address';
-    } else if (values.email && !this.isValidEmail(values.email)) {
+    } else if (values.email && !isValidEmail(values.email)) {
       errors.email = 'Please enter a valid email address';
     }
 
@@ -66,12 +66,11 @@ class ProjectAttributesImpl extends React.Component<IProjectAttributesProps, IPr
       <div className="well">
         <p>{`Type the name of the project (${projectName}) below to continue.`}</p>
 
-        <TextField
-          id="projectNameForDeletion"
+        <FormField
+          input={inputProps => <TextInput {...inputProps} id="projectNameForDeletion" placeholder="Project Name" />}
           value={projectNameForDeletion || ''}
-          onChange={value => this.setState({ projectNameForDeletion: value })}
-          placeholder="Project Name"
-          error={matchError && 'Project name does not match'}
+          onChange={evt => this.setState({ projectNameForDeletion: evt.target.value })}
+          validate={() => matchError && 'Project name does not match'}
           touched={projectNameForDeletion != null}
           required={true}
         />
@@ -107,21 +106,19 @@ class ProjectAttributesImpl extends React.Component<IProjectAttributesProps, IPr
     return (
       <>
         <div className="sp-margin-m-bottom">
-          <TextField.Formik
-            formik={formik}
+          <FormikFormField
+            input={props => <TextInput {...props} placeholder="Project Name" />}
             name="name"
             label="Project Name"
-            placeholder="Project Name"
             required={true}
           />
         </div>
 
         <div className="sp-margin-m-bottom">
-          <TextField.Formik
-            formik={formik}
+          <FormikFormField
+            input={props => <TextInput {...props} placeholder="Enter an email address" />}
             name="email"
             label="Owner Email"
-            placeholder="Enter an email address"
             required={true}
           />
         </div>
