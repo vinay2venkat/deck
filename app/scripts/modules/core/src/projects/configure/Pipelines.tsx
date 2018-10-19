@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FieldArray, FormikErrors, getIn } from 'formik';
 
-import { FormikFormField, SynchronousSelectInput } from 'core/presentation';
+import { FormikFormField, SelectInput } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 import { IPipeline, IProject, IProjectPipeline } from 'core/domain';
 import { IWizardPageProps, wizardPage } from 'core/modal';
@@ -91,9 +91,7 @@ class PipelinesImpl extends React.Component<IPipelinesProps> {
                             <FormikFormField
                               name={`${pipelinePath}.application`}
                               layout={({ input }) => <div>{input}</div>}
-                              input={props => (
-                                <SynchronousSelectInput {...props} clearable={false} stringOptions={apps} />
-                              )}
+                              input={props => <SelectInput {...props} clearable={false} stringOptions={apps} />}
                             />
                           </td>
 
@@ -104,9 +102,7 @@ class PipelinesImpl extends React.Component<IPipelinesProps> {
                               <FormikFormField
                                 name={`${pipelinePath}.pipelineConfigId`}
                                 layout={({ input }) => <div>{input}</div>}
-                                input={props => (
-                                  <SynchronousSelectInput {...props} clearable={false} options={pipelineOptions} />
-                                )}
+                                input={props => <SelectInput {...props} clearable={false} options={pipelineOptions} />}
                               />
                             )}
                           </td>

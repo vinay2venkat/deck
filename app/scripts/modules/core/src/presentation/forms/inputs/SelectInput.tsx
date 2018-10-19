@@ -5,7 +5,7 @@ import { noop } from 'core/utils';
 
 import { IFormInputProps } from '../interface';
 
-interface ISynchronousSelectInputProps extends IFormInputProps, ReactSelectProps {
+interface ISelectInputProps extends IFormInputProps, ReactSelectProps {
   // Specify either stringOptions or options
   stringOptions?: string[];
   options?: Option[];
@@ -27,10 +27,16 @@ const selectErrorStyle = {
   boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
 };
 
-export class SynchronousSelectInput extends React.Component<
-  ISynchronousSelectInputProps,
-  ISynchronousSelectInputState
-> {
+/**
+ * A react-select input
+ *
+ * This input supports error validation state rendering
+ * It also has a simplified stringOptions prop for when Option interface is overkill.
+ * It adapts the onChange event to a controlled input event
+ *
+ * This component does not attempt to support async loading
+ */
+export class SelectInput extends React.Component<ISelectInputProps, ISynchronousSelectInputState> {
   public state: ISynchronousSelectInputState = {
     options: [],
   };
@@ -39,7 +45,7 @@ export class SynchronousSelectInput extends React.Component<
     this.setState({ options: makeOptions(this.props.stringOptions) });
   }
 
-  public componentDidUpdate(prevProps: ISynchronousSelectInputProps) {
+  public componentDidUpdate(prevProps: ISelectInputProps) {
     if (this.props.stringOptions !== prevProps.stringOptions) {
       this.setState({ options: makeOptions(this.props.stringOptions) });
     } else if (this.props.options !== prevProps.options) {
@@ -49,6 +55,7 @@ export class SynchronousSelectInput extends React.Component<
 
   public render() {
     const { stringOptions, field, validation, inputClassName, ...otherProps } = this.props;
+    const { options } = this.state;
 
     const onChange = (selectedOption: Option) => {
       const fakeEvent = {
@@ -63,18 +70,9 @@ export class SynchronousSelectInput extends React.Component<
       return (field.onChange || noop)(fakeEvent);
     };
 
+    // TODO: see implementing onBlur makes sense
     const fieldProps = { name: field.name, value: field.value || '', onBlur: noop, onChange };
-
     const style = validation.validationStatus === 'error' ? selectErrorStyle : {};
-
-    return (
-      <Select
-        options={this.state.options}
-        className={`${inputClassName}`}
-        style={style}
-        {...fieldProps}
-        {...otherProps}
-      />
-    );
+    return <Select options={options} className={inputClassName} style={style} {...fieldProps} {...otherProps} />;
   }
 }

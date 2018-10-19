@@ -15,6 +15,10 @@ export interface IApplicationsPickerProps {
 
 const makeOption = (app: string) => ({ value: app, label: app });
 
+/**
+ * This component supports multiple selection of applications.
+ * The dropdown application list filters out already-selected apps.
+ */
 export class FormikApplicationsPicker extends React.Component<IApplicationsPickerProps> {
   public render() {
     const { label, applications, name } = this.props;
