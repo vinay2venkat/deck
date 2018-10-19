@@ -28,6 +28,7 @@ export interface IConfigureProjectModalState {
   appPipelines: {
     [appName: string]: IPipeline[];
   };
+  configuredApps: string[];
   loading: boolean;
   taskMonitor: TaskMonitor;
 }
@@ -44,6 +45,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     allProjects: [],
     allApplications: [],
     appPipelines: {},
+    configuredApps: [],
     taskMonitor: new TaskMonitor({
       title: 'Updating Project',
       onTaskComplete: () => null,
@@ -55,6 +57,11 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
     return ReactModal.show(ConfigureProjectModal, props, modalProps);
   }
+
+  private handleApplicationsChanged = (configuredApps: string[]) => {
+    this.setState({ configuredApps });
+    this.fetchPipelinesForApps(configuredApps);
+  };
 
   public componentDidMount() {
     const applications = (this.props.projectConfiguration && this.props.projectConfiguration.config.applications) || [];
@@ -121,29 +128,17 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
         submitButtonLabel="Save"
         validate={this.validate}
       >
-        <ProjectAttributes
-          onDelete={this.onDelete}
-          allProjects={this.state.allProjects}
-          done={!!(projectConfiguration.name && projectConfiguration.email)}
-        />
+        <ProjectAttributes allProjects={this.state.allProjects} onDelete={this.onDelete} done={true} />
 
         <Applications
           allApplications={allApplications.map(app => app.name)}
-          done={!!(projectConfiguration && projectConfiguration.config.applications.length)}
+          onApplicationsChanged={this.handleApplicationsChanged}
+          done={!!this.state.configuredApps.length}
         />
 
-        <Clusters
-          entries={projectConfiguration ? projectConfiguration.config.clusters : []}
-          accounts={allAccounts}
-          applications={Object.keys(appPipelines)}
-          done={!!(projectConfiguration && projectConfiguration.config.clusters.length)}
-        />
+        <Clusters accounts={allAccounts} done={true} />
 
-        <Pipelines
-          appsPipelines={appPipelines}
-          entries={projectConfiguration ? projectConfiguration.config.pipelineConfigs : []}
-          done={!!(projectConfiguration && projectConfiguration.config.pipelineConfigs.length)}
-        />
+        <Pipelines appsPipelines={appPipelines} done={true} />
       </WizardModal>
     );
   }

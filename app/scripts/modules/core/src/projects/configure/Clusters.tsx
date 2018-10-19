@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
 
-import { SynchronousSelectInput, FormikFormField, TextInput } from 'core/presentation';
 import { IAccount } from 'core/account';
 import { IProject, IProjectCluster } from 'core/domain';
 import { IWizardPageProps, wizardPage } from 'core/modal';
+import { FormikFormField, SynchronousSelectInput, TextInput } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 
 import { FormikApplicationsPicker } from './FormikApplicationsPicker';
@@ -13,20 +13,28 @@ import './Clusters.css';
 
 export interface IClustersProps extends IWizardPageProps<IProject> {
   accounts: IAccount[];
-  applications: string[];
-  entries: IProjectCluster[];
 }
 
 class ClustersImpl extends React.Component<IClustersProps> {
   public static LABEL = 'Clusters';
 
-  public validate = (value: IProject) => {
+  public validate = (value: IProject): FormikErrors<IProject> => {
+    const applications = value.config.applications || [];
     if (value.config.clusters && value.config.clusters.length) {
       const clusterErrors = value.config.clusters.map(cluster => {
+        const errors: any = {};
         if (!cluster.account) {
-          return { account: 'Account must be specified' };
+          errors.account = 'Account must be specified';
         }
-        return null;
+
+        const apps = cluster.applications || [];
+        const applicationErrors = apps.map(app => !applications.includes(app) && 'This app is not in the project');
+
+        if (applicationErrors.some(val => !!val)) {
+          errors.applications = applicationErrors;
+        }
+
+        return Object.keys(errors).length ? errors : null;
       });
 
       if (clusterErrors.some(val => !!val)) {
@@ -38,7 +46,7 @@ class ClustersImpl extends React.Component<IClustersProps> {
       }
     }
 
-    return {} as FormikErrors<IProject>;
+    return {};
   };
 
   private toggleAllApps(formik: FormikProps<any>, path: string) {
@@ -48,7 +56,7 @@ class ClustersImpl extends React.Component<IClustersProps> {
 
   public render() {
     const { HelpField } = NgReact;
-    const { applications, accounts } = this.props;
+    const { accounts } = this.props;
 
     const tableHeader = (
       <tr>
@@ -69,7 +77,9 @@ class ClustersImpl extends React.Component<IClustersProps> {
         name="config.clusters"
         render={clustersArrayHelpers => {
           const formik = clustersArrayHelpers.form;
-          const clusters: IProjectCluster[] = formik.values.config.clusters || [];
+          const values: IProject = formik.values;
+          const clusters: IProjectCluster[] = values.config.clusters || [];
+          const applications: string[] = values.config.applications || [];
           const accountNames = accounts.map(account => account.name);
 
           return (
@@ -102,7 +112,7 @@ class ClustersImpl extends React.Component<IClustersProps> {
                         <td>
                           <FormikFormField
                             name={`${clusterPath}.account`}
-                            layout={({ input }) => <div>{input}</div> /* render only the select */}
+                            layout={({ input }) => <div>{input}</div>}
                             input={props => (
                               <SynchronousSelectInput {...props} clearable={false} stringOptions={accountNames} />
                             )}
@@ -124,7 +134,9 @@ class ClustersImpl extends React.Component<IClustersProps> {
                         </td>
 
                         <td>
-                          <i className="fas fa-trash-alt clicakble" onClick={() => clustersArrayHelpers.remove(idx)} />
+                          <button className="nostyle" onClick={() => clustersArrayHelpers.remove(idx)}>
+                            <i className="fas fa-trash-alt" />
+                          </button>
                         </td>
                       </tr>
                     );
@@ -134,7 +146,7 @@ class ClustersImpl extends React.Component<IClustersProps> {
 
               <a
                 className="button zombie sp-margin-m horizontal middle center"
-                onClick={() => clustersArrayHelpers.push({})}
+                onClick={() => clustersArrayHelpers.push({ stack: '*', detail: '*' })}
               >
                 <i className="fas fa-plus-circle" /> Add Cluster
               </a>

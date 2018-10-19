@@ -5,28 +5,25 @@ import { noop } from 'core/utils';
 
 import { IFormInputProps } from '../interface';
 
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
-interface ISynchronousSelectInputProps extends IFormInputProps, Omit<ReactSelectProps, 'options' | 'onChange'> {
-  stringOptions: string[];
+interface ISynchronousSelectInputProps extends IFormInputProps, ReactSelectProps {
+  // Specify either stringOptions or options
+  stringOptions?: string[];
+  options?: Option[];
 }
 
 interface ISynchronousSelectInputState {
   options: Option[];
 }
 
-function makeOptions(options: string[] | Option[]): Option[] {
+function makeOptions(options: string[]): Option[] {
   options = options || [];
-  if (options && options[0] && (options[0] as Option).label) {
-    return options as Option[];
-  }
-
-  const strings = options as string[];
-  return strings.map(str => ({ label: str, value: str }));
+  return options.map(str => ({ label: str, value: str }));
 }
 
+// TODO: use standard classes; currently the form-control class messes up the rendering of this react-select
 const selectErrorStyle = {
   borderColor: 'var(--color-danger)',
-  '-webkitBoxShadow': 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
+  WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
   boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
 };
 
@@ -45,6 +42,8 @@ export class SynchronousSelectInput extends React.Component<
   public componentDidUpdate(prevProps: ISynchronousSelectInputProps) {
     if (this.props.stringOptions !== prevProps.stringOptions) {
       this.setState({ options: makeOptions(this.props.stringOptions) });
+    } else if (this.props.options !== prevProps.options) {
+      this.setState({ options: this.props.options });
     }
   }
 

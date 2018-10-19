@@ -1,19 +1,23 @@
+import * as React from 'react';
+import { FormikErrors, getIn } from 'formik';
+import { Effect } from 'formik-effect';
+import { isEqual } from 'lodash';
+
 import { IProject } from 'core/domain';
 import { IWizardPageProps, wizardPage } from 'core/modal';
 import { FormikApplicationsPicker } from 'core/projects/configure/FormikApplicationsPicker';
-import { FormikErrors } from 'formik';
-import * as React from 'react';
 
 import './Applications.css';
 
 export interface IApplicationsProps extends IWizardPageProps<IProject> {
   allApplications: string[];
+  onApplicationsChanged: (applications: string[]) => void;
 }
 
 class ApplicationsImpl extends React.Component<IApplicationsProps> {
   public static LABEL = 'Applications';
 
-  public validate(project: IProject) {
+  public validate(project: IProject): FormikErrors<IProject> {
     const configuredApps = (project.config && project.config.applications) || [];
     const getApplicationError = (app: string) =>
       this.props.allApplications.includes(app) ? undefined : `Application '${app}' does not exist.`;
@@ -27,13 +31,28 @@ class ApplicationsImpl extends React.Component<IApplicationsProps> {
       config: {
         applications: applicationErrors,
       },
-    } as FormikErrors<IProject>;
+    };
   }
 
   public render() {
     const { allApplications } = this.props;
 
-    return <FormikApplicationsPicker applications={allApplications} name="config.applications" />;
+    return (
+      <>
+        <Effect<IProject>
+          onChange={(prev, next) => {
+            const prevApps = getIn(prev.values, 'config.applications', []);
+            const nextApps = getIn(next.values, 'config.applications', []);
+
+            if (!isEqual(prevApps, nextApps)) {
+              this.props.onApplicationsChanged && this.props.onApplicationsChanged(nextApps);
+            }
+          }}
+        />
+
+        <FormikApplicationsPicker applications={allApplications} name="config.applications" />
+      </>
+    );
   }
 }
 
