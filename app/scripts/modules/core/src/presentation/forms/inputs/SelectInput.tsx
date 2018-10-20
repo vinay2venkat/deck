@@ -1,7 +1,8 @@
 import * as React from 'react';
-import Select, { Option, ReactSelectProps } from 'react-select';
+import { Option, ReactSelectProps } from 'react-select';
 
 import { noop } from 'core/utils';
+import { TetheredSelect } from 'core/presentation';
 
 import { IFormInputProps } from '../interface';
 
@@ -73,6 +74,8 @@ export class SelectInput extends React.Component<ISelectInputProps, ISynchronous
     // TODO: see implementing onBlur makes sense
     const fieldProps = { name: field.name, value: field.value || '', onBlur: noop, onChange };
     const style = validation.validationStatus === 'error' ? selectErrorStyle : {};
-    return <Select options={options} className={inputClassName} style={style} {...fieldProps} {...otherProps} />;
+    return (
+      <TetheredSelect options={options} className={inputClassName} style={style} {...fieldProps} {...otherProps} />
+    );
   }
 }
